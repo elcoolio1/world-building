@@ -8,8 +8,8 @@ import numpy #for gaussian random in drawart()
 
 #races = open('races.csv','r')
 
-seed = random.randint(100000,1000001)
-
+# seed = random.randint(100000,1000001)
+seed = 12345678
 
 
 #This is the random number generator. 
@@ -99,10 +99,8 @@ def drawart():
 	im.show() #saves image as temp file and opens with default photo program
 
 
-drawart()
+# drawart()
 
-
-print(planeGen())
 
 def races():
 	global seed

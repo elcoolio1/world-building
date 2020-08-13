@@ -3,8 +3,8 @@
 import csv
 import random
 import math
-from PIL import Image, ImageDraw
-import numpy
+from PIL import Image, ImageDraw #for drawart()
+import numpy #for gaussian random in drawart()
 
 #races = open('races.csv','r')
 
@@ -47,13 +47,32 @@ def planeGen():
 def drawart():
 	#creates visualization of God
 	sidecount = 2 #initial number of sides per polygon
-	polycount = 500 #number of layers to draw
-	exacttrans = 255 #initial transparency
-	mintrans = 50
-
+	polycount = 1000 #number of layers to draw
+	exacttrans = 255 #initial transparency (0-255)
+	mintrans = 50 #minimum transparency (0-255)
+	bar = [] #list for loading bar
+	barcounter = 0 #counts for 1% of cycles, then adds to loading bar
+	tencounter = 1
 
 	im = Image.new('RGB', (1000, 1000), (128, 128, 128))
 	for i in range(polycount): #loop for every layer
+
+		#progressbar
+		barcounter = barcounter +1
+
+		if barcounter >= polycount/100:
+
+			#makes loading bar longer for each 1% of cycles in loop
+			if tencounter >= 10:
+				bar.append('*')
+				tencounter = 0
+			else:
+				bar.append('|')
+			print ("\n" * 100) #shitty way of clearing terminal. just fill it with empty lines
+			print(''.join(bar)) #prints list with loading bar elements as one string with no spaces or commas
+			barcounter = 0
+			tencounter = tencounter +1
+
 		sidecount = sidecount+1 #add one side to the polygon drawn o n each layer
 		
 		# reduce transparency in even steps to minimum		
@@ -65,10 +84,8 @@ def drawart():
 		coordpairs = []
 		for i in range(sidecount):
 
-			newx = numpy.random.normal(loc=500, scale=100, size=None)
+			newx = numpy.random.normal(loc=500, scale=100, size=None) #generates random point following gaussian distribution centered on 500 (middle of 1000x1000 image) 
 			newy = numpy.random.normal(loc=500, scale=100, size=None)
-
-
 			newcoord = (newx, newy)
 			coordpairs.append(newcoord)
 
@@ -79,7 +96,6 @@ def drawart():
 		draw = ImageDraw.Draw(im, 'RGBA')
 		draw.polygon(coordpairs, fill=(random.randint(0,255), random.randint(0,255), random.randint(0,255), trans) ) #draws polygon with points at each xy in coordpairs
 		
-
 	im.show() #saves image as temp file and opens with default photo program
 
 

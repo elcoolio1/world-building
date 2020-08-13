@@ -3,6 +3,7 @@
 import csv
 import random
 import math
+from PIL import Image, ImageDraw
 
 #races = open('races.csv','r')
 
@@ -37,15 +38,41 @@ def planeGen():
 	minSize = 5	  #Min size of Plane
 	initW = xorshift(planePrN, 0) #Initiates xorshift()
 	planeSize = (xorshift(planePrN, initW) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
-	# return (planeSize)
+	return planeSize
 
 	# Biome(s)
 
 
+def drawfragment():
+	global seed
+	sidecount = 20 #number of sides per polygon
+
+	#create random points
+	coordpairs = []
+	newcoord = []
+	for i in range(sidecount):
+		newx = random.randint(0,1000)
+		newy = random.randint(0,1000)
+		newcoord = (newx, newy)
+		coordpairs.append(newcoord)
+
+		#sort coordpairs by x coordinate low to high
+		sorted(coordpairs, key = lambda xy: xy[1]) #key sets a function to be called on each iterative step of sorting. Apparently a lambda function is a small function that is defined in place. Here, it takes xy as an input (each coordinate pair) and returns just the first, x coordinate 
+
+	#figure parameters
+	im = Image.new('RGB', (1000, 1000), (128, 128, 128))
+	draw = ImageDraw.Draw(im)
+
+	#draw polygon
+	draw.polygon(coordpairs, fill=(50, 50, 50), outline=(0, 0, 0)) #draws polygon with points at each xy in coordpairs
+
+	im.show() #saves image as temp file and opens with default photo program
+
+drawfragment()
+
 
 
 print(planeGen())
-
 
 def races():
 	global seed

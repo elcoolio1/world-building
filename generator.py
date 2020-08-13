@@ -4,6 +4,7 @@ import csv
 import random
 import math
 from PIL import Image, ImageDraw
+import numpy
 
 #races = open('races.csv','r')
 
@@ -43,33 +44,46 @@ def planeGen():
 	# Biome(s)
 
 
-def drawfragment():
-	global seed
-	sidecount = 20 #number of sides per polygon
+def drawart():
+	#creates visualization of God
+	sidecount = 2 #initial number of sides per polygon
+	polycount = 500 #number of layers to draw
+	exacttrans = 255 #initial transparency
+	mintrans = 50
 
-	#create random points
-	coordpairs = []
-	newcoord = []
-	for i in range(sidecount):
-		newx = random.randint(0,1000)
-		newy = random.randint(0,1000)
-		newcoord = (newx, newy)
-		coordpairs.append(newcoord)
+
+	im = Image.new('RGB', (1000, 1000), (128, 128, 128))
+	for i in range(polycount): #loop for every layer
+		sidecount = sidecount+1 #add one side to the polygon drawn o n each layer
+		
+		# reduce transparency in even steps to minimum		
+		if exacttrans > mintrans :
+			exacttrans = exacttrans - (255 - mintrans)/polycount
+			trans = round(exacttrans)
+
+		#create random points
+		coordpairs = []
+		for i in range(sidecount):
+
+			newx = numpy.random.normal(loc=500, scale=100, size=None)
+			newy = numpy.random.normal(loc=500, scale=100, size=None)
+
+
+			newcoord = (newx, newy)
+			coordpairs.append(newcoord)
 
 		#sort coordpairs by x coordinate low to high
 		sorted(coordpairs, key = lambda xy: xy[1]) #key sets a function to be called on each iterative step of sorting. Apparently a lambda function is a small function that is defined in place. Here, it takes xy as an input (each coordinate pair) and returns just the first, x coordinate 
 
-	#figure parameters
-	im = Image.new('RGB', (1000, 1000), (128, 128, 128))
-	draw = ImageDraw.Draw(im)
-
-	#draw polygon
-	draw.polygon(coordpairs, fill=(50, 50, 50), outline=(0, 0, 0)) #draws polygon with points at each xy in coordpairs
+		#draw polygon
+		draw = ImageDraw.Draw(im, 'RGBA')
+		draw.polygon(coordpairs, fill=(random.randint(0,255), random.randint(0,255), random.randint(0,255), trans) ) #draws polygon with points at each xy in coordpairs
+		
 
 	im.show() #saves image as temp file and opens with default photo program
 
-drawfragment()
 
+drawart()
 
 
 print(planeGen())

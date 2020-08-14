@@ -1,4 +1,4 @@
-from generator import planeGen
+from generator import planeGen, xorshift
 from array import *
 
 
@@ -8,29 +8,41 @@ from array import *
 # NOTE: There is a buffer layer around the outside of each map to prevent index errors in the probabilty calculation. Working size of these
 # maps is actually 4 across by 3 down
 
-A = [0,0,0,0,0,0]
-B =  [0,0,0,0,0,0]
-C = [0,0,0,1,0,0]
-D =  [0,0,0,0,0,0]
-E = [0,0,0,0,0,0]
+def blankGen(mapType):
+	""" mapType 0 = hexMap, 1 = probMap """
+	mapSize = planeGen()
+	border = round(mapSize/2)
+	blankMap = []
+	for i in range(border):
+		blankMap.append([])
+		for j in range(border):
+			blankMap[i].append(0)
+	if mapType == 0:
+		blankMap [round(border/2)][round(border/2)] = 1
 
-hexMap = [A,B,C,D,E]
+	return(blankMap)
 
-probA = [0,0,0,0,0,0]
-probB =  [0,0,0,0,0,0]
-probC = [0,0,0,0,0,0]
-probD =  [0,0,0,0,0,0]
-probE = [0,0,0,0,0,0]
-probMap = [probA,probB,probC,probD,probE]
+# def probMapGen(hexMap):
+# 	probMap = hexMap
+# 	for i in range(len(hexMap)):
+# 		for(j) in range(len(hexMap[i])):
+# 			if hexMap[i][j] == 1:
+# 				probMap[i][j] = 7
+# 	return (probMap)
 
+hexMap = blankGen(0)  # This defines the global variables hexMap and probMap, don't delete pls
+print(hexMap)
+# probMap = probMapGen(hexMap)
+probMap = blankGen(1)
 
 # Calculates probability for next tile. Currently the whole board is recalculated for every call, could we make it update only locally?
-def initProb():
+def updProb():
 	global hexMap, probMap
 	for i in range (1,len(hexMap)-1): # Range is this way to account for the buffer layer.
 		for j in range (1,len(hexMap[i])-1):
 			if hexMap [i][j] == 1: #If a tile is there in hexMap, that tile in probMap is set to 7
 				probMap[i][j] = 7
+
 			# Because of the way coordinates work in a hex map, the numerical value of adjacent tiles differes in odd and even rows. This bit
 			# calculates how many adjacent tiles are "full", by summing their values (since full tiles are 1 and empty are 0). The probability
 			# for the next tile should be based on these values 1-6, with 7 being a tile that already exists.
@@ -40,39 +52,69 @@ def initProb():
 				probMap [i][j] = (hexMap[i-1][j] + hexMap[i-1][j+1] + hexMap[i][j-1] + hexMap[i][j+1] + hexMap[i+1][j] + hexMap[i+1][j+1])
 
 
-# Picks the next tile
-def nextTile():
+
+# Picks the next tile and places it in hexMap. This function returns the next iteration of xorshift to use.
+def tileGen(prevW):
+	tilePrN = 23
 	tileCount = 0
+	addCount = 0
 	global hexMap, probMap
-	for i in range(len(probMap)):
+	for i in range(len(probMap)):  # sums the total probabilities for the spaces that could get a new tile
 		for j in range (len(probMap[i])):
 			if probMap [i][j] == 7:
 				pass
 			else:
 				tileCount = tileCount + probMap [i][j]
+	
+	newTile = (xorshift(tilePrN, prevW))%tileCount # Iterates xorshift, then uses the tileCount to force it into the range we want
+	# print(tileCount)    vestigial checking code
+	# print("NEW TILE: ", newTile)
+	for i in range(len(probMap)): # Counts up to the newTile value, then places a tile there
+		for j in range (len(probMap[i])):
+			if probMap [i][j] == 7:
+				pass
+			elif probMap[i][j] == 0:
+				pass
+			else:
+				addCount = addCount + probMap [i][j]
+				if addCount > newTile:
+					hexMap[i][j] = 1
+					probMap[i][j] = 7
+					break
+		if addCount > newTile:
+			break
+	return (xorshift(tilePrN, prevW))
 
 
-
-
-
-
-# TODO: something that uses the xorshift function to decide what tile to place, somehow wieghted by the value 1-6 of the array probMap
-
-initProb()
 # Prints the arrays properly
-def printMaps():
+def printProb():
+	global probMap
 	for i in range (len(probMap)):
 		if i%2 == 0:
 			print(i, " ", probMap[i])
 		else:
 			print(i, "  ", probMap[i])
-
 	print("")
 
+def printHex():
+	global hexMap
 	for i in range (len(hexMap)):
 		if i%2 == 0:
 			print(i, " ", hexMap[i])
 		else:
 			print(i, "  ", hexMap[i])
+	print("")
 
-nextTile()
+def makeMap():
+	global hexMap, probMap
+	for i in range()
+
+updProb()
+printHex()
+W = tileGen(0)
+updProb()
+printHex()
+tileGen(W)
+printHex()
+
+# print(blankGen())

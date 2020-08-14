@@ -35,8 +35,8 @@ def planeGen():
 	planePrN = 37
 
 	# Size
-	maxSize = 10  #Max size of Plane
-	minSize = 5	  #Min size of Plane
+	maxSize = 20  #Max size of Plane
+	minSize = 10  #Min size of Plane
 	initW = xorshift(planePrN, 0) #Initiates xorshift()
 	planeSize = (xorshift(planePrN, initW) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
 	return planeSize
@@ -121,4 +121,5 @@ def races():
 # 	print(l)
 
 # print (xorshift(5, 0))
+print(planeGen())
 

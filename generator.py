@@ -8,8 +8,8 @@ import numpy #for gaussian random in drawart()
 
 #races = open('races.csv','r')
 
-# seed = random.randint(100000,1000001)
-seed = 12345678
+seed = random.randint(100000,1000001)
+# seed = 12345678
 
 
 #This is the random number generator. 
@@ -18,7 +18,8 @@ seed = 12345678
 #	should use the last value returned by this function.
 #Behavior: Generates values (Max value  = seed). Iterates the function and returns the prN'th value generated
 #	This is done so one function can be used for all calls, without creating overlap.
-def xorshift(prN, W):  #prN: Prime of component. W: if continuing, previous XORshift value, else seed
+def xorshift(prN, W):  
+	""" prN: Prime of component. W: if continuing, previous XORshift value, else seed """
 	global seed
 	if W == 0:
 		W = seed
@@ -30,15 +31,15 @@ def xorshift(prN, W):  #prN: Prime of component. W: if continuing, previous XORs
 
 
 #Generates the physical characteristics of the plane
-def planeGen(): 
+def planeGen(W): 
+	""" W is the current working step  of W for your function. Pass 0 for init """
 	global seed
 	planePrN = 37
 
 	# Size
-	maxSize = 20  #Max size of Plane
-	minSize = 10  #Min size of Plane
-	initW = xorshift(planePrN, 0) #Initiates xorshift()
-	planeSize = (xorshift(planePrN, initW) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
+	maxSize = 27  #Max size of Plane
+	minSize = 27  #Min size of Plane
+	planeSize = (xorshift(planePrN, W) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
 	return planeSize
 
 	# Biome(s)
@@ -121,5 +122,5 @@ def races():
 # 	print(l)
 
 # print (xorshift(5, 0))
-print(planeGen())
+# print(planeGen(3))
 

@@ -1,6 +1,8 @@
 from generator import planeGen, xorshift
 from array import *
 import time
+from PIL import Image, ImageDraw 
+import math
 
 
 
@@ -103,6 +105,56 @@ def printHex(hexMap):
 	print("")
 
 
+def hexpoints(center_x, center_y, offset, scale):
+	r = 1/2*scale
+	x = (center_x)*scale+scale
+	y = (center_y)*scale+math.sqrt(3)/2*scale
+	
+	if offset > 0:
+		coords = [
+			(x - r/2, y),
+			(x + r/2, y),
+			(x + r, y - math.sqrt(3)/2 *r),
+			(x + r/2, y - math.sqrt(3) *r),
+			(x - r/2, y - math.sqrt(3) *r),
+			(x - r, y - math.sqrt(3)/2 *r),
+		]
+	
+	else:
+		coords = [
+			(x - r/2, y + math.sqrt(3)/2 *r),
+			(x + r/2, y + math.sqrt(3)/2 *r),
+			(x + r, y),
+			(x + r/2, y - math.sqrt(3)/2 *r),
+			(x - r/2, y - math.sqrt(3)/2 *r),
+			(x - r, y),
+		]
+	return coords
+
+
+def drawHex(hexMap,scale):
+	im = Image.new('RGB', (int(len(hexMap)*scale+scale), int(len(hexMap[0])*math.sqrt(3)/2*scale+math.sqrt(3)*scale)), (0, 0, 0))
+	draw = ImageDraw.Draw(im, 'RGB')
+
+	for i in range (len(hexMap)):
+		for j in range (len(hexMap[i])):
+			if hexMap[i][j] > 0:
+				color = 'white'
+
+			else:
+				color = 'grey'
+
+			if i % 2 == 0:
+				offset = 1
+			else:
+				offset = 0
+
+			points = hexpoints(i,j,offset,scale)#*math.sqrt(3)/2
+			draw.polygon(points, fill=color,)
+	im.show()
+
+
+
 def makeMap():
 	W = 0
 	planeSize = planeGen(0)
@@ -114,4 +166,11 @@ def makeMap():
 		printHex (hexMap)
 		# time.sleep(.2)
 
-makeMap()
+def makeMapAlt():
+	hexMap = []
+	for i in range(100):
+		hexMap.append([0,0,1,0,0,0,0,1,0,0])
+	drawHex(hexMap,500)
+
+# makeMap()
+makeMapAlt()

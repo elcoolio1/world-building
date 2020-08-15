@@ -1,9 +1,11 @@
 
 from typing import List, Set, Dict, Tuple, Optional
 import math
+import pygame
+pygame.init()
 
 
-def hx2ax(hx: Tuple[float, float, float]):
+def hx2ax(hx: Tuple[int, int, int]):
 	#converts hex xyz coordinates to axial qr coordinates
 	x = hx[0]
 	y = hx[1]
@@ -16,7 +18,7 @@ def hx2ax(hx: Tuple[float, float, float]):
 	return axial
 
 
-def ax2hx(axial: Tuple[float, float]):
+def ax2hx(axial: Tuple[int, int]):
 	#converts axial qr coordinates to hex xyz coordinates
 	q = axial[0]
 	r = axial[1]
@@ -29,7 +31,7 @@ def ax2hx(axial: Tuple[float, float]):
 	hx = (x,y,z)
 	return hx
 
-def ax2px(axial: Tuple[float, float]):
+def ax2px(axial: Tuple[int, int]) -> Tuple[int, int]:
 	#converts axial qr coordinates to pixel xy coordinates
 	q = axial[0]
 	r = axial[1]
@@ -44,7 +46,7 @@ def ax2px(axial: Tuple[float, float]):
 	pixel = (x,y)
 	return pixel
 
-def px2ax(pixel: Tuple[float, float]):
+def px2ax(pixel: Tuple[int, int]):
 	#converts pixel xy coordinates to axial qr coordinates
 	x = pixel[0]
 	y = pixel[1]
@@ -54,7 +56,7 @@ def px2ax(pixel: Tuple[float, float]):
 	axial = (q,r)
 	return axial
 
-def hx2px(hx: Tuple[float, float, float]):
+def hx2px(hx: Tuple[int, int, int]):
 	#converts hex xyz coordinates to pixel xy coordinates
 	x = hx[0]
 	y = hx[1]
@@ -67,7 +69,7 @@ def hx2px(hx: Tuple[float, float, float]):
 	return pixel
 
 
-def px2hx(pixel: Tuple[float, float]):
+def px2hx(pixel: Tuple[int, int]):
 	#converts pixel xy coordinates to hex xyz coordinates
 	x = pixel[0]
 	y = pixel[1]
@@ -79,7 +81,7 @@ def px2hx(pixel: Tuple[float, float]):
 	return hx
 
 
-def hx_dist(start: Tuple[float, float, float], stop: Tuple[float, float, float]):
+def hx_dist(start: Tuple[int, int, int], stop: Tuple[int, int, int]):
 	#calculates distance between 2 xyz hex points
 	dx = abs(stop[0]-start[0])
 	dy = abs(stop[1]-start[1])
@@ -91,7 +93,7 @@ def hx_dist(start: Tuple[float, float, float], stop: Tuple[float, float, float])
 	distance = max(dx,dy,dz)
 	return distance
 
-def ax_distance(start: Tuple[float, float], stop: Tuple[float, float]):
+def ax_distance(start: Tuple[int, int], stop: Tuple[int, int]):
 	#calculates distance between 2 qr axial points
 	#converts to hex for calculation
 	hx_start = ax2hx(start)
@@ -101,7 +103,7 @@ def ax_distance(start: Tuple[float, float], stop: Tuple[float, float]):
 	return ax_distance
 
 
-def round_hx(hx: Tuple[float, float, float]):
+def round_hx(hx: Tuple[int, int, int]):
 	#rounds hex coordinates to nearest whole integer coordinate
 	x = hx[0]
 	y = hx[1]
@@ -128,29 +130,37 @@ def round_hx(hx: Tuple[float, float, float]):
 	return rounded_hx
 
 
-def round_ax(axial: Tuple[float, float]):
+def round_ax(axial: Tuple[int, int]):
 	#convert to hex then round to take advantage of always discarding worst rounding amount
 	hx = ax2hx(axial)
 	round_hx = round_hx(hx)
 	round_ax = hx2ax(round(hx))
 	return round_ax
 
-def draw_px_hx(pixel: Tuple[float, float], scale, origin: Tuple[float, float]):
-	x = pixel[0]
-	y = pixel[1]
 
-	x1 = (x - 1/(2*math.sqrt(3)))*scale + origin[0]
-	y1 = (y + 0.5)*scale + origin[1]
-	x2 = (x + 1/(2*math.sqrt(3)))*scale + origin[0]
-	y2 = (y + 0.5)*scale + origin[1]
-	x3 = (x + 1/math.sqrt(3))*scale + origin[0]
-	y3 = (y)*scale + origin[1]
-	x4 = (x + 1/(2*math.sqrt(3)))*scale + origin[0]
-	y4 = (y - 0.5)*scale + origin[1]
-	x5 = (x - 1/(2*math.sqrt(3)))*scale + origin[0]
-	y5 = (y - 0.5)*scale + origin[1]
-	x6 = (x - 1/math.sqrt(3))*scale + origin[0]
-	y6 = (y)*scale + origin[1]
+def scale_output(point: Tuple[int, int], scale, origin: Tuple[int, int]):
+	x = point[0]*scale+origin[0]
+	y = point[1]*scale+origin[1]
+	scaled_coords = (int(x),int(y))
+	return scaled_coords
+
+
+def hex_on_center(center: Tuple[int, int]):
+	x = center[0]
+	y = center[1]
+
+	x1 = x - 1/(2*math.sqrt(3))
+	y1 = y + 0.5
+	x2 = x + 1/(2*math.sqrt(3))
+	y2 = y + 0.5
+	x3 = x + 1/math.sqrt(3)
+	y3 = y
+	x4 = x + 1/(2*math.sqrt(3))
+	y4 = y - 0.5
+	x5 = x - 1/(2*math.sqrt(3))
+	y5 = y - 0.5
+	x6 = x - 1/math.sqrt(3)
+	y6 = y
 
 	xy_points = [
 		(x1,y1),
@@ -160,3 +170,50 @@ def draw_px_hx(pixel: Tuple[float, float], scale, origin: Tuple[float, float]):
 		(x5,y5),
 		(x6,y6)]
 	return xy_points
+
+def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
+
+	hx_width = hx_size[0]
+	hx_height = hx_size[1]
+	px_size = width, height = (hx_width+2)*hx_scale, (hx_height+2)*hx_scale
+
+	center_x = int(width/2)
+	center_y = int(height/2)
+	origin = (center_x,center_y)
+
+	global screen
+	screen = pygame.display.set_mode(px_size)
+	global px_origin
+	px_origin = origin
+	global scale
+	scale = hx_scale
+	global px_grid_thickness
+	px_grid_thickness = int(grid_thickness)
+
+	screen.fill((255,255,255))
+
+	return screen
+
+
+def draw_hex(center,color=(0,0,0)):
+
+	points = hex_on_center(ax2px(center))
+	shape = []
+	for i in range(len(points)):
+		shape.append(
+			scale_output(
+				points[i],
+				scale,
+				px_origin
+			)
+		)
+
+	pygame.draw.aalines(screen, color, True, shape, px_grid_thickness)
+
+def draw_center(center, color=(255,0,0), size=2):
+	location = scale_output(
+		ax2px(center), 
+		scale, 
+		px_origin
+	)
+	pygame.draw.circle(screen,color,location,int(size))

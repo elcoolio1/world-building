@@ -183,14 +183,21 @@ def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
 
 	global screen
 	screen = pygame.display.set_mode(px_size)
+	global textscreen
+	textscreen = pygame.display.set_mode(px_size)
 	global px_origin
 	px_origin = origin
 	global scale
 	scale = hx_scale
 	global px_grid_thickness
 	px_grid_thickness = int(grid_thickness)
+	global opensans_reg
+	opensans_reg = pygame.font.Font('OpenSans-Regular.ttf', 8) 
+	global opensans_bold
+	opensans_bold = pygame.font.Font('OpenSans-SemiBold.ttf', 12) 
 
 	screen.fill((255,255,255))
+	pygame.display.set_caption('Hexmapper')
 
 	return screen
 
@@ -217,3 +224,21 @@ def draw_center(center, color=(255,0,0), size=2):
 		px_origin
 	)
 	pygame.draw.circle(screen,color,location,int(size))
+
+def draw_coords(center,color = (0,0,128)):
+	string_to_print = str(
+		round_hx(
+			ax2hx(
+				center
+			)
+		)
+	)
+	text = opensans_reg.render(string_to_print, True, color)
+	textRect = text.get_rect()
+
+	position = scale_output(ax2px(center), scale, px_origin)
+
+	textRect.center = (position[0],position[1]+10)
+	textscreen.blit(text, textRect)
+	pygame.display.update() 
+

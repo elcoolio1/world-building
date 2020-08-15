@@ -40,7 +40,7 @@ def ax2px(axial: Tuple[float, float]):
 
 	#same special triangle gives -1/2 y for every 1 q. 1r directly results in 1y
 	#y = y1 + y2, y1 = r, y2 = -1/2*q
-	y = r-q/2
+	y = -(r+q/2)
 	pixel = (x,y)
 	return pixel
 
@@ -135,3 +135,28 @@ def round_ax(axial: Tuple[float, float]):
 	round_ax = hx2ax(round(hx))
 	return round_ax
 
+def draw_px_hx(pixel: Tuple[float, float], scale, origin: Tuple[float, float]):
+	x = pixel[0]
+	y = pixel[1]
+
+	x1 = (x - 1/(2*math.sqrt(3)))*scale + origin[0]
+	y1 = (y + 0.5)*scale + origin[1]
+	x2 = (x + 1/(2*math.sqrt(3)))*scale + origin[0]
+	y2 = (y + 0.5)*scale + origin[1]
+	x3 = (x + 1/math.sqrt(3))*scale + origin[0]
+	y3 = (y)*scale + origin[1]
+	x4 = (x + 1/(2*math.sqrt(3)))*scale + origin[0]
+	y4 = (y - 0.5)*scale + origin[1]
+	x5 = (x - 1/(2*math.sqrt(3)))*scale + origin[0]
+	y5 = (y - 0.5)*scale + origin[1]
+	x6 = (x - 1/math.sqrt(3))*scale + origin[0]
+	y6 = (y)*scale + origin[1]
+
+	xy_points = [
+		(x1,y1),
+		(x2,y2),
+		(x3,y3),
+		(x4,y4),
+		(x5,y5),
+		(x6,y6)]
+	return xy_points

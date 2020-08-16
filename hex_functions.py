@@ -50,7 +50,7 @@ def px2ax(pixel: Tuple[int, int]):
 	#converts pixel xy coordinates to axial qr coordinates
 	x = pixel[0]
 	y = pixel[1]
-	#solve equations in ax2bx for q and r
+	#solve equations in ax2px for q and r
 	q = x*2/math.sqrt(3)
 	r = -y-q/2
 	axial = (q,r)
@@ -142,6 +142,10 @@ def round_ax(axial: Tuple[int, int]):
 
 
 def scale_output(point: Tuple[int, int], scale, origin: Tuple[int, int]):
+	#Used to prepare px coordinates for drawing. Scales up by factor (default is set in display_init() below)
+	#adds half screen size to place origin at 0,0
+
+	#I think in the future we can get rid of this and do it at the level of axial to pixel conversion. I just didn't want to mess that up yet
 	x = point[0]*scale+origin[0]
 	y = point[1]*scale+origin[1]
 	scaled_coords = (int(x),int(y))
@@ -149,6 +153,8 @@ def scale_output(point: Tuple[int, int], scale, origin: Tuple[int, int]):
 
 
 def hex_on_center(center: Tuple[int, int]):
+	#returns list of xy tuples defining (flat topped) hexagon points around input point
+
 	x = center[0]
 	y = center[1]
 
@@ -175,6 +181,7 @@ def hex_on_center(center: Tuple[int, int]):
 	return xy_points
 
 def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
+	#call at start of script to set up pygames display
 
 	hx_width = hx_size[0]
 	hx_height = hx_size[1]
@@ -182,31 +189,31 @@ def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
 
 	center_x = int(width/2)
 	center_y = int(height/2)
-	origin = (center_x,center_y)
+	origin = (center_x,center_y) 
 
 	global screen
-	screen = pygame.display.set_mode(px_size)
+	screen = pygame.display.set_mode(px_size) #used in scale_output()
 	global textscreen
 	textscreen = pygame.display.set_mode(px_size)
 	global px_origin
-	px_origin = origin
+	px_origin = origin #used in scale_output()
 	global scale
-	scale = hx_scale
+	scale = hx_scale #used in scale_output()
 	global px_grid_thickness
-	px_grid_thickness = int(grid_thickness)
-	global opensans_reg
+	px_grid_thickness = int(grid_thickness) #thickness of lines around hex
+	global opensans_reg #import fonts for drawing
 	opensans_reg = pygame.font.Font('OpenSans-Regular.ttf', 8) 
 	global opensans_bold
 	opensans_bold = pygame.font.Font('OpenSans-SemiBold.ttf', 12) 
 
-	screen.fill((0,0,0))
-	pygame.display.set_caption('Hexmapper')
+	screen.fill((0,0,0)) #black screen to start
+	pygame.display.set_caption('Hexmapper') #labels display window
 
 	return screen
 
 
 def draw_hex(center,color=(255,255,255)):
-
+	#draws a filled hex at center
 	points = hex_on_center(ax2px(center))
 	shape = []
 	for i in range(len(points)):
@@ -221,7 +228,7 @@ def draw_hex(center,color=(255,255,255)):
 	pygame.draw.polygon(screen, color, shape)
 
 def draw_hex_outline(center,color=(0,0,0)):
-
+	#draws empty hex outline
 	points = hex_on_center(ax2px(center))
 	shape = []
 	for i in range(len(points)):
@@ -236,6 +243,7 @@ def draw_hex_outline(center,color=(0,0,0)):
 	pygame.draw.aalines(screen, color, True, shape, px_grid_thickness)
 
 def draw_center(center, color=(255,0,0), size=2):
+	#draws point, meant for center points of hex
 	location = scale_output(
 		ax2px(center), 
 		scale, 
@@ -244,6 +252,8 @@ def draw_center(center, color=(255,0,0), size=2):
 	pygame.draw.circle(screen,color,location,int(size))
 
 def draw_coords(center,color = (0,0,128)):
+	#writes coordinates 10px below where they are
+	#used to label coordinates on hex
 	string_to_print = str(
 		round_hx(
 			ax2hx(
@@ -256,12 +266,15 @@ def draw_coords(center,color = (0,0,128)):
 
 	position = scale_output(ax2px(center), scale, px_origin)
 
-	textRect.center = (position[0],position[1]+10)
+	textRect.center = (position[0],position[1]+10) # +10 is to offset vertically and show in bottom half of hex
 	textscreen.blit(text, textRect)
 	pygame.display.update() 
 
 
 def draw_line(start,stop,color = (100,100,100)):
+	#draws a straight line across map
+	#highlights hexes it passes through
+	#test points are drawn as small dots
 	dist_hx = ax_distance(start,stop)
 	start_px = ax2px(start)
 	stop_px = ax2px(stop)
@@ -278,21 +291,12 @@ def draw_line(start,stop,color = (100,100,100)):
 	draw_x = start_px[0]
 	draw_y = start_px[1]
 
-	for i in range(dist_hx+1):
+	for i in range(dist_hx+1): #test points for hex distance + 1 to test start and end as well
 		draw = (draw_x,draw_y)
-
-		through_hex = round_hx(px2hx(draw))
-		# print('pix:',draw)
-		# print('hex:',px2hx(draw))
-		# print('rou:',round_hx(px2hx(draw)))
-
-		draw_hex(hx2ax(through_hex),(50,50,50))
-
-		draw_coords(through_hex)
-
-		
-		pygame.draw.circle(screen,dot_color,scale_output(draw,scale, px_origin),5)
-		draw_x = draw_x + dx
+		pygame.draw.circle(screen,dot_color,scale_output(draw,scale, px_origin),5) #draws circle on test point
+		through_hex = round_hx(px2hx(draw)) #converts test point from pixel to hex coordinate, then rounds to nearest whole hex
+		draw_hex(hx2ax(through_hex),(50,50,50)) #color in hex that line passes through
+		draw_x = draw_x + dx #increment x and y pixel position to next test point
 		draw_y = draw_y + dy
 
 

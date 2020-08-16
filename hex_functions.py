@@ -51,8 +51,8 @@ def px2ax(pixel: Tuple[int, int]):
 	x = pixel[0]
 	y = pixel[1]
 	#solve equations in ax2bx for q and r
-	q = 2/math.sqrt(3)*x
-	r = y+x/math.sqrt(3)
+	q = x*2/math.sqrt(3)
+	r = -y-q/2
 	axial = (q,r)
 	return axial
 
@@ -119,6 +119,7 @@ def round_hx(hx: Tuple[int, int, int]):
 	dy = abs(y-round_y)
 	dz = abs(z-round_z)
 	diffs = [dx,dy,dz]
+	# print('diffs',diffs)
 	if max(diffs) == dx:
 		round_x = -(round_y+round_z)
 	elif  max(diffs) == dy:
@@ -127,15 +128,17 @@ def round_hx(hx: Tuple[int, int, int]):
 		round_z = -(round_x+round_y)
 
 	rounded_hx = (round_x,round_y,round_z)
+	# print('raw',hx)
+	# print('rounded',rounded_hx)
 	return rounded_hx
 
 
 def round_ax(axial: Tuple[int, int]):
 	#convert to hex then round to take advantage of always discarding worst rounding amount
 	hx = ax2hx(axial)
-	round_hx = round_hx(hx)
-	round_ax = hx2ax(round(hx))
-	return round_ax
+	rounded_hx = round_hx(hx)
+	rounded_ax = hx2ax(rounded_hx)
+	return rounded_ax
 
 
 def scale_output(point: Tuple[int, int], scale, origin: Tuple[int, int]):
@@ -196,13 +199,28 @@ def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
 	global opensans_bold
 	opensans_bold = pygame.font.Font('OpenSans-SemiBold.ttf', 12) 
 
-	screen.fill((255,255,255))
+	screen.fill((0,0,0))
 	pygame.display.set_caption('Hexmapper')
 
 	return screen
 
 
-def draw_hex(center,color=(0,0,0)):
+def draw_hex(center,color=(255,255,255)):
+
+	points = hex_on_center(ax2px(center))
+	shape = []
+	for i in range(len(points)):
+		shape.append(
+			scale_output(
+				points[i],
+				scale,
+				px_origin
+			)
+		)
+
+	pygame.draw.polygon(screen, color, shape)
+
+def draw_hex_outline(center,color=(0,0,0)):
 
 	points = hex_on_center(ax2px(center))
 	shape = []
@@ -241,4 +259,45 @@ def draw_coords(center,color = (0,0,128)):
 	textRect.center = (position[0],position[1]+10)
 	textscreen.blit(text, textRect)
 	pygame.display.update() 
+
+
+def draw_line(start,stop,color = (100,100,100)):
+	dist_hx = ax_distance(start,stop)
+	start_px = ax2px(start)
+	stop_px = ax2px(stop)
+	dot_color = 175,175,175
+
+	pygame.draw.aaline(
+		screen, 
+		color, 
+		scale_output(start_px,	scale, px_origin),
+		scale_output(stop_px, scale, px_origin), 
+		2)
+	dx = (stop_px[0]-start_px[0])/dist_hx
+	dy = (stop_px[1]-start_px[1])/dist_hx
+	draw_x = start_px[0]
+	draw_y = start_px[1]
+
+	for i in range(dist_hx+1):
+		draw = (draw_x,draw_y)
+
+		through_hex = round_hx(px2hx(draw))
+		# print('pix:',draw)
+		# print('hex:',px2hx(draw))
+		# print('rou:',round_hx(px2hx(draw)))
+
+		draw_hex(hx2ax(through_hex),(50,50,50))
+
+		draw_coords(through_hex)
+
+		
+		pygame.draw.circle(screen,dot_color,scale_output(draw,scale, px_origin),5)
+		draw_x = draw_x + dx
+		draw_y = draw_y + dy
+
+
+
+
+def fill_primary_hex():
+	draw_secondary_hex()
 

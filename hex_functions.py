@@ -2,6 +2,8 @@
 from typing import List, Set, Dict, Tuple, Optional
 import math
 import pygame
+import random
+
 pygame.init()
 
 
@@ -299,9 +301,14 @@ def draw_line(start,stop,color = (100,100,100)):
 		draw_x = draw_x + dx #increment x and y pixel position to next test point
 		draw_y = draw_y + dy
 
+def draw_cluster(center,color=(),radius=2):
+	
+	for q in range(center[0]-radius,center[0]+radius+1):
+		for r in range(center[1]-radius,center[1]+radius+1):
+			draw_at = q,r
+			if ax_distance(draw_at,center) <= radius:
+				draw_hex(draw_at,color)
+				draw_hex_outline(draw_at)
 
 
-
-def fill_primary_hex():
-	draw_secondary_hex()
 

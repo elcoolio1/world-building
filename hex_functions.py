@@ -301,14 +301,23 @@ def draw_line(start,stop,color = (100,100,100)):
 		draw_x = draw_x + dx #increment x and y pixel position to next test point
 		draw_y = draw_y + dy
 
-def draw_cluster(center,color=(),radius=2):
+def draw_cluster(center,color=(255,0,0),radius=2,draw_borders=True):
 	
 	for q in range(center[0]-radius,center[0]+radius+1):
 		for r in range(center[1]-radius,center[1]+radius+1):
 			draw_at = q,r
 			if ax_distance(draw_at,center) <= radius:
 				draw_hex(draw_at,color)
-				draw_hex_outline(draw_at)
+				if draw_borders:
+					draw_hex_outline(draw_at)
 
+def draw_cluster_center(center,color=(255,255,255),radius=2,draw_all_centers=False,cluster_radius=2):
+	if draw_all_centers:
+		for q in range(center[0]-cluster_radius,center[0]+cluster_radius+1):
+			for r in range(center[1]-cluster_radius,center[1]+cluster_radius+1):
+				draw_at = q,r
+				if ax_distance(draw_at,center) <= cluster_radius:
+					draw_center(draw_at,color,radius)
 
-
+	else:
+		draw_center(center,color,radius)

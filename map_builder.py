@@ -1,32 +1,28 @@
 from hex_functions import *
 from generator_functions import *
-import pygame
+import arcade
 import sys
 
 
 scale = 20 #size of hexes
 size = (66,66) #number of hexes
 
-screen = display_init(scale,size)
+display_init(scale,size)
+arcade.start_render()
 
 
-# for q in range(-40,40):
-# 	for r in range(-66,66):
-# 		draw_line(p1,p2)
-# 		if ax_distance((q,r),(0,0)) < 33:
+for q in range(-40,40):
+	for r in range(-66,66):
+		if ax_distance((q,r),(0,0)) < 33:
 
-# 			loc = (q,r)
-# 			draw_cluster(q,r)
+			loc = (q,r)
+			draw_hex(loc)
 
 
-for x in range(0,1000):
-	for y in range(0,1000):
-		loc = x,y
-		color = elev_color(loc)
-		screen.set_at(loc, color)
+# for x in range(0,1000):
+# 	for y in range(0,1000):
+# 		loc = x,y
+# 		color = elev_color(loc)
 
-pygame.display.flip()
-
-while 1:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT: sys.exit()
+arcade.finish_render()
+arcade.run()

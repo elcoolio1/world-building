@@ -182,7 +182,7 @@ def hex_on_center(center: Tuple[int, int]):
 		(x6,y6)]
 	return xy_points
 
-def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 0.1):
+def display_init(hx_scale=50, hx_size=(20,20), grid_thickness = 1):
 	#call at start of script to set up pygames display
 
 	hx_width = hx_size[0]

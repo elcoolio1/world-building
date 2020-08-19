@@ -19,7 +19,7 @@ for q in range(-60, 60):
     for r in range(-60, 60):
         if ax_distance((q, r), (0, 0)) < 30:
             loc = (q, r)
-            color = elev_color_sections(loc)
+            color = elev_color_sections(loc,.01,[0.1,0.15,0.5,0.7])
             draw_hex(loc, color)
             # elevs.append(elev(loc))
             # draw_hex_outline(loc, (150, 150, 150))

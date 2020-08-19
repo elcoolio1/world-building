@@ -19,13 +19,14 @@ def px_noise(pixel,freq=0.1):
 	noise = gen.noise2d(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
 	return noise
 
-def elev(xy,freq=0.1,octaves=3):
+def elev(xy,freq=0.1,octaves=3,power=3):
 	elev = 0
 	max_elev = 0
 	for i in range(octaves):
 		elev = elev + (1/2**i)*px_noise(xy,freq*(2**i))
 		max_elev = max_elev + (1/2**i)
 	elev = elev/max_elev
+	elev = elev**power
 
 	return elev
 
@@ -72,8 +73,8 @@ def elev_color(xy,freq=0.1):
 		
 	return color
 
-def elev_color_sections(xy,freq=.001,break_points=[0.45,0.5,0.7,0.75]):
-	e = elev(xy)
+def elev_color_sections(xy,freq=.001,break_points=[0.3,0.5,0.7,0.9]):
+	e = elev(xy,freq)
 	sea_level = break_points[0]
 	beach_line = break_points[1]
 	tree_line = break_points[2]

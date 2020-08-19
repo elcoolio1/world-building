@@ -20,13 +20,14 @@ seed = random.randint(100000,1000001)
 #	This is done so one function can be used for all calls, without creating overlap.
 def xorshift(prN, W):  
 	""" prN: Prime of component. W: if continuing, previous XORshift value, else seed """
+	# print("IN XORSHIFT", W)
 	global seed
 	if W == 0:
 		W = seed
 	for i in range(prN):  #Iterates the xorshift prN times
 		X = W ^ (W >> 17) ^ (W << 12)
 		W = X
-	corX = X % seed #caps size of X via X mod (seed)
+	corX = W % seed #caps size of X via X mod (seed)
 	return (corX)
 
 
@@ -101,26 +102,4 @@ def drawart():
 
 
 # drawart()
-
-
-def races():
-	global seed
-	#races and their weights
-	HumanW = 100
-	DwarfW = 100
-	ElfW = 100
-	GnomeW = 100
-	DragonbornW = 100
-	HalflingW = 100
-	TieflingW = 100
-
-
-
-# l = 0
-# for i in range(18):
-# 	l = xorshift(37,l)
-# 	print(l)
-
-# print (xorshift(5, 0))
-# print(planeGen(3))
 

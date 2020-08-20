@@ -1,6 +1,7 @@
 from generator import planeGen, xorshift
 from array import *
 import time
+import math
 
 
 
@@ -13,7 +14,7 @@ import time
 def blankGen(mapType, mapSize):
 	""" mapType 0 = hexMap, 1 = probMap 
 	mapSize can be manual, but usually the result of planeGen()"""
-	border = round(mapSize)
+	border = round(mapSize*(math.log(10)/math.log(mapSize)**1.4))
 	blankMap = []
 	for i in range(border):
 		blankMap.append([])
@@ -84,7 +85,7 @@ def printProb(probMap):
 		if i%2 == 0:
 			print(i, " ", probMap[i])
 		else:
-			print(i, "  ", probMap[i])
+			print(i, "   ", probMap[i])
 	print("")
 
 def printHex(hexMap):
@@ -93,9 +94,9 @@ def printHex(hexMap):
 		niceMap.append([])
 		for j in range (len(hexMap[i])):
 			if hexMap[i][j] == 0:
-				niceMap[i].append(". ")
+				niceMap[i].append(".")
 			elif hexMap[i][j] == 1:
-				niceMap[i].append("M ")
+				niceMap[i].append("M")
 		if i%2 == 0:
 			print(" ", niceMap[i])
 		else:
@@ -112,6 +113,6 @@ def makeMap():
 		probMap = updProb(hexMap, probMap)
 		hexMap, probMap, W = tileGen(hexMap, probMap, W)
 		printHex (hexMap)
-		# time.sleep(.2)
+		time.sleep(.05)
 
 makeMap()

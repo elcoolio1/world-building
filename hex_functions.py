@@ -140,7 +140,7 @@ def round_hx(hx: Tuple[int, int, int]):
 def round_ax(axial: Tuple[int, int]):
     # convert to hex then round to take advantage of always discarding worst rounding amount
     hx = ax2hx(axial)
-    rounded_hx = round_hx(hx)
+    rounded_hx = round_hx(hx)Tuple[int, int]
     rounded_ax = hx2ax(rounded_hx)
     return rounded_ax
 

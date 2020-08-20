@@ -38,8 +38,8 @@ def planeGen(W):
 	planePrN = 37
 
 	# Size
-	maxSize = 27  #Max size of Plane
-	minSize = 27  #Min size of Plane
+	maxSize = 3  #Max size of Plane
+	minSize = 110  #Min size of Plane
 	planeSize = (xorshift(planePrN, W) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
 	return planeSize
 

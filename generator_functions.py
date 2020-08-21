@@ -31,8 +31,9 @@ def elev(xy,freq=0.1,octaves=3,power=3):
 	return elev
 
 
-def elev_color_sections(xy,freq=.001,break_points=[0.3,0.5,0.7,0.9]):
-	e = elev(xy,freq)
+def elev_color_sections(xy,freq=0.1,break_points=[0.3,0.5,0.7,0.9]):
+	# e = elev(xy,freq)
+	e=0.4
 	sea_level = break_points[0]
 	beach_line = break_points[1]
 	tree_line = break_points[2]

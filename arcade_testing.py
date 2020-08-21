@@ -15,6 +15,8 @@ global origin_y
 origin_y = int(height / 2)
 global origin
 origin = (origin_x, origin_y)
+global zoom
+zoom = 0.005
 
 px_grid_thickness = int(grid_thickness)  # thickness of lines around hex
 
@@ -86,8 +88,9 @@ class MyGame(arcade.Window):
 			elevation_xy=[]
 			for i in range(0,2):
 				elevation_xy.append(coord_px[i]+origin[i])
-
-			color = elev_color_sections(elevation_xy,.01,[0.1,0.15,0.5,0.7])
+			global zoom
+			color = elev_color_sections(elevation_xy,zoom,[0.1,0.15,0.5,0.7])
+			# color = 50,50,50
 			hx = hexagon('hexagon.png',(hx_scale*1.2/(100))) #25% scaling
 			hx.center_x = coord_px[0]
 			hx.center_y = coord_px[1]
@@ -114,8 +117,9 @@ class MyGame(arcade.Window):
 					elevation_xy=[]
 					for i in range(0,2):
 						elevation_xy.append(coord_px[i]+origin[i])
+					global zoom
 
-					color = elev_color_sections(elevation_xy,.01,[0.1,0.15,0.5,0.7])
+					color = elev_color_sections(elevation_xy,zoom,[0.1,0.15,0.5,0.7])
 					hx = hexagon('hexagon.png',(hx_scale*1.2/(100))) #25% scaling
 					hx.center_x = coord_px[0]
 					hx.center_y = coord_px[1]
@@ -158,7 +162,7 @@ class MyGame(arcade.Window):
 			origin = origin_x,origin_y
 
 
-			# print(origin)
+			print(origin)
 
 
 

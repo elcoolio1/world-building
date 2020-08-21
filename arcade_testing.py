@@ -32,6 +32,7 @@ class hexagon(arcade.Sprite):
 	def update(self):
 		pass
 
+
 class cursor:
 	def __init__(self, position_x, position_y, radius, color):
 
@@ -61,28 +62,55 @@ class MyGame(arcade.Window):
 		self.hex_list = []
 		self.cursor = cursor(origin_x, origin_y, 2, arcade.color.WHITE)
 		self.set_mouse_visible(False)
+		self.draw_map()
 		global dragging
 		dragging = False
-		self.draw_map()
 
 		arcade.set_background_color(arcade.color.BLACK)
+		
 
 
 	def draw_map(self):
-		# origin_ax = px2ax(origin)
 
-		# hx_width = 55
-		# hx_height = 55
+		self.new_list = arcade.SpriteList(use_spatial_hash=False,is_static=True)
+		for i in range(len(self.hex_list)):
+			sprite = self.hex_list[i]
+			coord_px = sprite._get_position()
+
+		# for q in range(-30,30):
+		# 	for r in range(-30,30):
+		# 		if ax_distance((q, r), (0,0)) < hx_radius:
+					
+		# 			coord_px = ax2px((q,r))
+
+			elevation_xy=[]
+			for i in range(0,2):
+				elevation_xy.append(coord_px[i]+origin[i])
+
+			color = elev_color_sections(elevation_xy,.01,[0.1,0.15,0.5,0.7])
+			hx = hexagon('hexagon.png',(hx_scale*1.2/(100))) #25% scaling
+			hx.center_x = coord_px[0]
+			hx.center_y = coord_px[1]
+			hx.color = color 
+
+			self.new_list.append(hx)
+		self.hex_list = arcade.SpriteList(use_spatial_hash=False,is_static=True)
+		self.hex_list = self.new_list
+
+
+
+	def setup(self):
+		""" Set up the game and initialize the variables. """
+
+		# Sprite lists
+		self.hex_list = arcade.SpriteList(use_spatial_hash=False,is_static=True)
 		hx_radius = 24
 		for q in range(-30,30):
 			for r in range(-30,30):
 				if ax_distance((q, r), (0,0)) < hx_radius:
 					
 					coord_px = ax2px((q,r))
-					# px = (px[0]+origin_x,px[1]+origin_y)
-
-					# pixel = (coord_px[0]*hx_scale+origin_x, coord_px[1]*hx_scale+origin_y)
-					# scaled_pixel=[]
+	
 					elevation_xy=[]
 					for i in range(0,2):
 						elevation_xy.append(coord_px[i]+origin[i])
@@ -94,14 +122,6 @@ class MyGame(arcade.Window):
 					hx.color = color
 
 					self.hex_list.append(hx)
-
-
-
-	def setup(self):
-		""" Set up the game and initialize the variables. """
-
-		# Sprite lists
-		self.hex_list = arcade.SpriteList(use_spatial_hash=False,is_static=True)
 
 
 	def on_draw(self):
@@ -138,7 +158,7 @@ class MyGame(arcade.Window):
 			origin = origin_x,origin_y
 
 
-			print(origin)
+			# print(origin)
 
 
 

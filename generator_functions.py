@@ -30,48 +30,6 @@ def elev(xy,freq=0.1,octaves=3,power=3):
 
 	return elev
 
-def elev_color(xy,freq=0.1):
-
-
-	elevation = elev(xy,freq)
-	
-	#water to beach colors
-	deep_water = (0, 129, 175)
-	mid_water  = (0, 171, 231)
-	shallows   = (45, 199, 255)
-	shore      = (234, 210, 172)
-	beach      = (234, 186, 107)
-
-	undergrowth= (23, 195, 103)
-	boreal     = (14, 125, 42)
-	evergreen  = (22, 67, 35)
-	rock       = (78, 103, 102)
-	snow       = (249, 253, 255)
-
-	dh = 0.1
-
-	if elevation < dh*3:
-		color = deep_water
-	elif elevation < dh*3.5:
-		color = mid_water
-	elif elevation < dh*4:
-		color = shallows
-	elif elevation < dh*4.5:
-		color = shore
-	elif elevation < dh*5:
-		color = beach
-	elif elevation < dh*7:
-		color = undergrowth
-	elif elevation < dh*8:
-		color = boreal
-	elif elevation < dh*10:
-		color = evergreen
-	elif elevation < dh*10.5:
-		color = rock
-	else:
-		color = snow
-		
-	return color
 
 def elev_color_sections(xy,freq=.001,break_points=[0.3,0.5,0.7,0.9]):
 	e = elev(xy,freq)

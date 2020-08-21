@@ -1,3 +1,13 @@
+"""
+This is where code goes to die
+
+Lots of stuff is critical to things in other places
+
+Better to copy and edit a new version of something than to edit anything existing
+"""
+
+
+
 
 from typing import List, Set, Dict, Tuple, Optional
 import math
@@ -43,7 +53,7 @@ def global_display(size,x,y):
 
 def ax2px(axial: Tuple[int, int]) -> Tuple[int, int]:
 	# converts axial qr coordinates to pixel xy coordinates
-	
+	global scale
 	q = axial[0]
 	r = axial[1]
 	# use triangle to break down into vector movement from 1 r and 1 q.
@@ -54,14 +64,15 @@ def ax2px(axial: Tuple[int, int]) -> Tuple[int, int]:
 	# same special triangle gives -1/2 y for every 1 q. 1r directly results in 1y
 	# y = y1 + y2, y1 = r, y2 = -1/2*q
 	y = -(r + q / 2)
-	pixel = (x*scale+origin_x, y*scale+origin_y)
+	pixel = (x*scale, y*scale)
 	return pixel
 
 
 def px2ax(pixel: Tuple[int, int]):
 	# converts pixel xy coordinates to axial qr coordinates
-	x = (pixel[0]-origin_x)/scale
-	y = (pixel[1]-origin_y)/scale
+	global scale
+	x = (pixel[0])/scale
+	y = (pixel[1])/scale
 	# solve equations in ax2px for q and r
 	q = x * 2 / math.sqrt(3)
 	r = -y - q / 2
@@ -155,12 +166,13 @@ def round_ax(axial: Tuple[int, int]):
 	return rounded_ax
 
 
-def scale_output(point: Tuple[int, int], scale, origin: Tuple[int, int]):
+def scale_output(point: Tuple[int, int], old_scale, origin: Tuple[int, int]):
 	# Used to prepare px coordinates for drawing. Scales up by factor (default is set in display_init() below)
 	# adds half screen size to place origin at 0,0
 
 	# I think in the future we can get rid of this and do it at the level of axial to pixel conversion. I just didn't want to mess that up yet
-	# update: NOT WORTH MOVING. EVERYTHING BROKE. SPEND HOURS. REVERTED COMMIT
+	# update: NOT WORTH MOVING. EVERYTHING BROKE. SPEND HOURS. REVERTED COMMIT\
+	global scale
 	x = point[0] * scale + origin[0]
 	y = point[1] * scale + origin[1]
 	scaled_coords = (int(x), int(y))

@@ -16,7 +16,7 @@ origin_y = int(height / 2)
 global origin
 origin = (origin_x, origin_y)
 global zoom
-zoom = 0.005
+zoom = 0.0001
 
 px_grid_thickness = int(grid_thickness)  # thickness of lines around hex
 
@@ -62,9 +62,9 @@ class MyGame(arcade.Window):
 
 		# Variables that will hold sprite lists
 		self.hex_list = []
-		self.cursor = cursor(origin_x, origin_y, 2, arcade.color.WHITE)
+		self.cursor = cursor(origin_x, origin_y, 5, arcade.color.WHITE)
 		self.set_mouse_visible(False)
-		self.draw_map()
+		# self.draw_map()
 		global dragging
 		dragging = False
 
@@ -140,7 +140,7 @@ class MyGame(arcade.Window):
 		global dragging
 		dragging = True
 
-		self.draw_map()
+		
 		
 
 	def on_mouse_release(self, x, y, button, modifiers):
@@ -153,23 +153,37 @@ class MyGame(arcade.Window):
 		self.cursor.position_x = x
 		self.cursor.position_y = y
 		global dragging
+		dx_ax = ax2px(round_ax(px2ax((dx,dy))))
 		if dragging:
 			global origin_x
-			origin_x = origin_x-dx#hx_scale
+			origin_x = origin_x-dx#_ax[0]#hx_scale
+			
 			global origin_y
-			origin_y = origin_y-dy#hx_scale
+			origin_y = origin_y-dy#x_ax[1]#hx_scale
+			
 			global origin
 			origin = origin_x,origin_y
+
+			rounded_origin = ax2px(round_ax(px2ax(origin)))
+			origin_x = rounded_origin[0]
+			origin_y = rounded_origin[1]
+
+			origin = origin_x,origin_y
+			
 
 
 			print(origin)
 
-
+	def on_mouse_scroll(self,x,y,scroll_x,scroll_y):
+		global zoom
+		zoom = zoom+scroll_y*0.0001
+		print(zoom)
 
 
 	def update(self, delta_time):
 		
 		self.hex_list.update()
+		self.draw_map()
 
 		
 

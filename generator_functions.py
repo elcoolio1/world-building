@@ -1,6 +1,8 @@
 from opensimplex import OpenSimplex
 from hex_functions import *
-
+# import pyfastnoisesimd as fns
+import noise
+from noise import snoise2
 
 
 
@@ -8,15 +10,19 @@ def ax_center_noise(axial,freq=0.1):
 	pixel = ax2px(axial)
 	x = pixel[0]
 	y = pixel[1]
-	gen = OpenSimplex()
-	noise = gen.noise2d(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
+	# gen = SimplexNoise()
+	# noise = fns.Noise()
+	# noise.genFromCoords((x*freq,y*freq))/2+0.5
+	noise = snoise2(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
 	return noise
 
 def px_noise(pixel,freq=0.1):
 	x = pixel[0]
 	y = pixel[1]
-	gen = OpenSimplex()
-	noise = gen.noise2d(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
+	# noise = fns.Noise()
+	# noise.genFromCoords((x*freq,y*freq))/2+0.5
+	# gen = SimplexNoise()
+	noise = snoise2(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
 	return noise
 
 def elev(xy,freq=0.1,octaves=3,power=3):
@@ -28,12 +34,14 @@ def elev(xy,freq=0.1,octaves=3,power=3):
 	elev = elev/max_elev
 	elev = elev**power
 
+
 	return elev
 
 
 def elev_color_sections(xy,freq=0.1,break_points=[0.3,0.5,0.7,0.9]):
-	# e = elev(xy,freq)
-	e=0.4
+	# e = (xy[0]%10/10+xy[1]%10/10)/2
+	e = elev(xy,freq)
+	# e=0.4
 	sea_level = break_points[0]
 	beach_line = break_points[1]
 	tree_line = break_points[2]

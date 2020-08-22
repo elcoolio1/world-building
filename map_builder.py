@@ -6,12 +6,12 @@ initial_window_size = init_width,init_height = 1000,1000
 
 window_size = width,height = init_width,init_height
 global zoom
-zoom=20
+zoom=4
 hx2px_scale = 20
 grid_thickness=1
 
 global noise_freq
-noise_freq = 0.01
+noise_freq = 0.03
 
 px_grid_thickness = int(grid_thickness)  # thickness of lines around hex
 
@@ -40,7 +40,6 @@ class MyGame(arcade.Window):
 		global dragging
 		dragging = False
 
-
 		self.hex_list = []
 		self.cursor = cursor(0, 0, 5, arcade.color.WHITE)
 		self.set_mouse_visible(False)
@@ -63,19 +62,25 @@ class MyGame(arcade.Window):
 				coord_px = ax2px((q,r))
 				if coord_px[0] >= vp[0]-edge_buffer and coord_px[0] <= vp[1]+edge_buffer:
 					if coord_px[1] >= vp[2]-edge_buffer and coord_px[1] <= vp[3]+edge_buffer:
+						ax_dist=ax_distance(round_ax((q,r)),(0,0))
+						if ax_dist<120:
 
-						global noise_freq
-						coords=[]
-						for i in range(0,2):
-							coords.append(coord_px[i]/zoom)
+							global noise_freq
+							coords=[]
+							for i in range(0,2):
+								coords.append(coord_px[i]/zoom)
+							elevation = elev(coords,noise_freq)
 
-						color = elev_color_sections(coords,noise_freq,[0.1,0.15,0.5,0.7])
-						hx = hexagon('hexagon.png',(zoom*1.2/(100)))
-						hx.center_x = coord_px[0]
-						hx.center_y = coord_px[1]
-						hx.color = color
+							elevation = (elevation-ax_dist/120)/2+0.5
 
-						self.hex_list.append(hx)
+							
+							color = elev_color_sections(elevation,[0.48,0.6,0.74,0.77,0.45])
+							hx = hexagon('hexagon.png',(zoom*1.2/(100)))
+							hx.center_x = coord_px[0]
+							hx.center_y = coord_px[1]
+							hx.color = color
+
+							self.hex_list.append(hx)
 
 	def setup(self):
 		self.hex_list = arcade.SpriteList(use_spatial_hash=False,)

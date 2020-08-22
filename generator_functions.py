@@ -1,9 +1,8 @@
-from opensimplex import OpenSimplex
+"""
+Functions for generating based on noise gen
+"""
 from hex_functions import *
-# import pyfastnoisesimd as fns
-import noise
 from noise import snoise2
-
 
 
 def ax_center_noise(axial,freq=0.1):
@@ -33,8 +32,6 @@ def elev(xy,freq=0.1,octaves=3,power=1):
 		max_elev = max_elev + (1/2**i)
 	elev = elev/max_elev
 	elev = elev**power
-
-
 	return elev
 
 
@@ -47,14 +44,11 @@ def elev_color_sections(e,break_points=[0.55,0.6,0.7,0.8,0.5]):
 
 	dsea = sea_level-space_level
 	dbeach = beach_line-sea_level
-
 	# dtree = tree_line-beach_line
 	dtree = tree_line-sea_level
-
 	drock = snow_line-tree_line
 	dsnow = 1-snow_line
 	dspace = space_level-0
-
 
 	dark_blue = 5,18,64
 	light_blue = 45, 199, 255
@@ -77,8 +71,6 @@ def elev_color_sections(e,break_points=[0.55,0.6,0.7,0.8,0.5]):
 	outer_rock = 87, 92, 88
 	inner_rock = 119, 122, 119
 
-
-
 	if e< space_level:
 		color = color_grad(dark_space,purple_space,(e)/dspace)
 	elif e < sea_level:
@@ -91,12 +83,7 @@ def elev_color_sections(e,break_points=[0.55,0.6,0.7,0.8,0.5]):
 		color = color_grad(light_rock,dark_rock,(e-tree_line)/drock)
 	else:
 		color = color_grad(off_white,pure_white,(e-snow_line)*5/dsnow)
-
 	return color
-
-		
-
-
 
 def color_grad(map1,map2,percent):
 	percent = clamp(percent,0,1)

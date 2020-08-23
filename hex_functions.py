@@ -127,6 +127,11 @@ def ax_distance(start: Tuple[int, int], stop: Tuple[int, int]):
 	ax_distance = hx_distance
 	return ax_distance
 
+def px_distance (start,stop):
+	dx = abs(stop[0]-start[0])
+	dy = abs(stop[1]-start[1])
+	distance = math.sqrt(dx**2+dy**2)
+	return distance
 
 def round_hx(hx: Tuple[int, int, int]):
 	# rounds hex coordinates to nearest whole integer coordinate
@@ -200,4 +205,33 @@ def draw_line(start, stop, color=(100, 100, 100), line_width=2):
 
 	arcade.draw_line(scaled_start[0], scaled_start[1],
 					 scaled_stop[0], scaled_stop[1], color, line_width)
+
+def grid_neighbours(x,y):
+	neighbours=[]
+	neighbours.append((x,y-1))
+	neighbours.append((x+1,y-1))
+	neighbours.append((x-1,y))
+	neighbours.append((x+1,y))
+	neighbours.append((x-1,y+1))
+	neighbours.append((x,y+1))
+	return neighbours
+
+def get_neighbour(direction,x,y):
+	if direction == 0:
+		neighbour = x,y-1
+	elif direction == 1:
+		neighbour = x+1,y-1
+	elif direction == 2:
+		neighbour = x-1,y
+	elif direction == 3:
+		neighbour = x+1,y
+	elif direction == 4:
+		neighbour = x-1,y+1
+	elif direction == 5:
+		neighbour = x,y+1
+
+	return neighbour
+
+
+
 

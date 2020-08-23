@@ -24,7 +24,7 @@ def px_noise(pixel,freq=0.1):
 	noise = snoise2(x*freq,y*freq)/2 + 0.5 #/2+.5 moves values into 0 ... 1 from -1 ... 1
 	return noise
 
-def elev(xy,freq=0.1,octaves=3,power=1):
+def elev(xy,freq=0.1,octaves=3,power=3):
 	elev = 0
 	max_elev = 0
 	for i in range(octaves):

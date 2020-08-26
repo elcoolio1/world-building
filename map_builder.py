@@ -6,7 +6,7 @@ initial_window_size = init_width,init_height = 1000,1000 #size of arcade window 
 
 window_size = width,height = init_width,init_height #dynamic window size. Changes on fullscreen
 global zoom
-zoom=12 #scaling factor for size of hexagons and distance apart (min 4, if it goes to close to 0 it crashes)
+zoom=4 #scaling factor for size of hexagons and distance apart (min 4, if it goes to close to 0 it crashes)
 
 global noise_freq
 noise_freq = 0.03 #determines scale of largest bumps in elevation map
@@ -67,6 +67,7 @@ class map_gen(arcade.Window):
 
 		#for each hex in parallelogram defined by cover_screen
 		map_size = 40
+		rain_vol = 0.0001
 		for row in range(0,2*map_size+1): 
 			self.hex_grid.append([])
 			for column in range(0,2*map_size+1):
@@ -101,7 +102,8 @@ class map_gen(arcade.Window):
 					hx.center_y = coord_px[1]
 					hx.elevation = elevation
 					hx.color = color 
-					hx.flow = 0
+					hx.flow_through = 0
+					hx.volume = rain_vol
 					hx.flow_cut = 0
 
 
@@ -111,16 +113,17 @@ class map_gen(arcade.Window):
 					# self.hex_list.append([]) #add to sprite list
 					self.hex_grid[row].append(None)
 
-		# calc water flow direction
+		
 		flow_iterations = 10
-		flow_array = []
+		
+		vol_array = []
 		for i in range(len(self.hex_grid)):
-			flow_array.append([])
+			vol_array.append([])
 			for j in range(len(self.hex_grid)):
 				if self.hex_grid[i][j] is not None:
-					flow_array[i].append(1)
+					vol_array[i].append(0)
 				else:
-					flow_array[i].append(None)
+					vol_array[i].append(None)
 
 		for iteration in range(flow_iterations):
 			for row in range(len(self.hex_grid)): 
@@ -149,10 +152,10 @@ class map_gen(arcade.Window):
 									if check_col >= 0 and check_col <= len(self.hex_grid):
 										if self.hex_grid[check_row][check_col] is not None:
 
-											to_append = self.hex_grid[row][column].elevation - self.hex_grid[check_row][check_col].elevation
+											to_append = (self.hex_grid[row][column].elevation + self.hex_grid[row][column].volume) - (self.hex_grid[check_row][check_col].elevation + self.hex_grid[check_row][check_col].volume)
 											d_elevs.append(to_append)
 											# print('delta',to_append)
-											if to_append>0:
+											if to_append > 0:
 												total_d_elev = total_d_elev + to_append
 										else:
 											d_elevs.append(-1)
@@ -164,33 +167,45 @@ class map_gen(arcade.Window):
 								check_row = adjacent_rows[i]
 								check_col = adjacent_cols[i]
 								if d_elevs[i] > 0:
-									# print('before',flow_array[check_row][check_col])
-									flow_array[check_row][check_col] = flow_array[check_row][check_col] + d_elevs[i]/total_d_elev * self.hex_grid[row][column].flow
-									# print(total_d_elev)
-									# print('after',flow_array[check_row][check_col])
-			
-			
+
+									flow_amount = d_elevs[i]/total_d_elev * self.hex_grid[row][column].volume
+									# print(d_elevs[i]/total_d_elev)
+									vol_array[check_row][check_col] = vol_array[check_row][check_col] + flow_amount
+									vol_array[row][column] = vol_array[row][column] - flow_amount
+
+									self.hex_grid[check_row][check_col].flow_through = self.hex_grid[check_row][check_col].flow_through + flow_amount
+
+							# vol_array[row][column] = vol_array[row][column] - self.hex_grid[row][column].volume
+							
 
 
-			for row in range(len(flow_array)): 
-				for column in range(len(flow_array)):
+
+			for row in range(len(vol_array)): 
+				for column in range(len(vol_array)):
 					if self.hex_grid[row][column] is not None:
-						# print(flow_array[row][column])
-						self.hex_grid[row][column].flow = flow_array[row][column]
-			for i in range(len(flow_array)):
-				for j in range(len(flow_array)):
+						# print(vol_array[row][column])
+						self.hex_grid[row][column].volume = vol_array[row][column]
+
+			for i in range(len(vol_array)):
+				for j in range(len(vol_array)):
 					if self.hex_grid[i][j] is not None:
-						flow_array[i][j] = flow_array[i][j] + 1
+						vol_array[i][j] = vol_array[i][j] +rain_vol
 
 
 
 
 		#color water
+		flow_val_list = []
+		vol_val_list = []
 		for row in range(len(self.hex_grid)): 
 			for column in range(len(self.hex_grid[row])):
 				if self.hex_grid[row][column] is not None:
-					print(self.hex_grid[row][column].flow/100)
-					self.hex_grid[row][column].color = color_grad((255,255,255),(0,0,255),self.hex_grid[row][column].flow/10000)
+					print(self.hex_grid[row][column].flow_through)
+					flow_val_list.append(self.hex_grid[row][column].flow_through)
+					vol_val_list.append(self.hex_grid[row][column].volume)
+					self.hex_grid[row][column].color = color_grad((255,255,255),(0,0,255),self.hex_grid[row][column].flow_through)
+		print('Max flow',max(flow_val_list))
+		print('Max volume',max(vol_val_list))
 		#color elevation
 		# for row in range(len(self.hex_grid)): 
 		# 	for column in range(len(self.hex_grid[row])):
@@ -252,15 +267,22 @@ class map_gen(arcade.Window):
 	def on_mouse_scroll(self,x,y,scroll_x,scroll_y):
 		"""
 		you know what this means
+
 		"""
 		global zoom
+		old_zoom = zoom
 		#stops zoom from going below 3 (4 in practicality because it moves in units of 2 [scroll_y*2])
 		if zoom >2:
 			if zoom+scroll_y*2>2:
 				zoom = zoom+scroll_y*2
+				for i in range(len(self.hex_list)):
+					self.hex_list[i].center_x = self.hex_list[i].center_x*zoom/old_zoom
+					self.hex_list[i].center_y = self.hex_list[i].center_y*zoom/old_zoom
+					self.hex_list[i].scale = zoom*1.2/(100)
 		print(zoom)
 		global_display(zoom,0,0)
-		self.create_map()
+
+		# self.create_map()
 
 	def on_key_press(self,key,modifiers):
 		"""

@@ -1,5 +1,6 @@
 #world gen
 
+import copy
 import csv
 import random
 import math
@@ -8,13 +9,13 @@ import time
 import os
 
 #races = open('races.csv','r')
-seed = 0
 
 def NewSeed():
-	global seed
 	seed = random.randint(100000,1000001)
 	# seed = 12345678
 	return seed
+
+seed = NewSeed()
 
 
 
@@ -36,7 +37,6 @@ def xorshift(prN, W):
 	corX = W % seed #caps size of X via X mod (seed)
 	return (corX)
 
-
 #Generates the physical characteristics of the plane
 def planeGen(W): 
 	""" W is the current working step  of W for your function. Pass 0 for init """
@@ -44,13 +44,14 @@ def planeGen(W):
 	planePrN = 37
 
 	# Size
-	maxSize = 3  #Max size of Plane
-	minSize = 110  #Min size of Plane
+	maxSize = 10  #Max size of Plane
+	minSize = 1000  #Min size of Plane
 	planeSize = (xorshift(planePrN, W) % (maxSize + 1 - minSize)) + minSize  #iterates xorshift(), then forces it into range
 	return planeSize
 
 	# Biome(s)
 
+planeSize = planeGen(0)
 
 # Manual array creation
 # This will be automated for bigger map sizes
@@ -73,7 +74,6 @@ def blankGen(mapType, mapSize):
 		blankMap [round(border/2)][round(border/2)] = 7
 
 	return(blankMap)
-
 
 # Calculates probability for next tile. Currently the whole board is recalculated for every call, could we make it update only locally?
 def initProb(hexMap, probMap):
@@ -122,7 +122,6 @@ def updProb(i, j, probMap):
 			probMap[i+1][j+1] = probMap[i+1][j+1] + 1
 	return(probMap)
 
-
 # Picks the next tile and places it in hexMap. This function returns the next iteration of xorshift to use.
 def tileGen(hexMap, probMap, prevW):
 	""" returns updated in the same order """
@@ -131,7 +130,7 @@ def tileGen(hexMap, probMap, prevW):
 	addCount = 0
 	for i in range(len(probMap)):  # sums the total probabilities for the spaces that could get a new tile
 		for j in range (len(probMap[i])):
-			if probMap [i][j] <= 7:
+			if probMap [i][j] < 7:
 				tileCount = tileCount + probMap [i][j]
 	
 	newTile = (xorshift(tilePrN, prevW))%tileCount # Iterates xorshift, then uses the tileCount to force it into the range we want
@@ -146,14 +145,17 @@ def tileGen(hexMap, probMap, prevW):
 					probMap[i][j] = 7
 					# print("Before updProb", probMap)
 					# print(i, j)
-					updProb(i, j, probMap)
+					try:
+						updProb(i, j, probMap)
+					except IndexError:
+						continue
+
 					# print("after updProb", probMap)
 
 					break
 		if addCount > newTile:
 			break
 	return (hexMap, probMap, xorshift(tilePrN, prevW))
-
 
 # Prints the arrays properly
 def printProb(probMap):
@@ -165,38 +167,195 @@ def printProb(probMap):
 	print("")
 
 def printHex(probMap):
-	niceMap = []
-	for i in range (len(probMap)):
-		niceMap.append([])
-		for j in range (len(probMap[i])):
-			if probMap[i][j] <= 6: # == 0 for border probability
-				niceMap[i].append(".")
-			# elif 0 < probMap[i][j] <= 6:
-			# 	niceMap[i].append(str(probMap[i][j]))
-			elif probMap[i][j] >= 7:
-				niceMap[i].append("M")
-		if i%2 == 0:
-			print(" ", niceMap[i])
-		else:
-			print("    ", niceMap[i])
 	print("")
+	kplsth = []
+	kplstv = []
+	midMap = []
+	niceMap = []
+	# decides what horizontal rows to keep
+	for i in range(len(probMap)-1): 
+		for j in range(len(probMap)):
+			if 7 <= probMap[i][j]:
+				kplsth.append(i)
+				break
+	for x in kplsth:
+		midMap.append(probMap[x])
 
+	# decides what vertical lines to keep
+	for i in range(len(probMap)-1):
+		for j in range(len(probMap[i])-1):
+			if 7 <= probMap[j][i]:
+				kplstv.append(i)
+				break
+	for i in range(len(midMap)-1):
+		niceMap.append([])
+		for x in kplstv:
+			niceMap[i].append(midMap[i][x])
+
+
+	#prints Map
+	for i in range (len(niceMap)):
+		if i%2 == 0:
+			print("", end=" ")
+		else:
+			print(" ", end=" ")
+		for j in range (len(niceMap[i])):
+			if niceMap[i][j] <= 6: # == 0 for border probability
+				print(" ", end=" ")
+			elif niceMap[i][j] >= 7:
+				print("0", end=" ")
+		print("")
+	print("")
 
 def makeMap():
 	init_time = time.clock()
 	W = 0
+	global planeSize
 	planeSize = planeGen(0)
 	hexMap = blankGen(0, planeSize) 
 	probMap = blankGen(1, planeSize)
 	probMap = initProb(hexMap, probMap)
-	for i in range(planeSize):
+	for i in range(1,planeSize):
 		# probMap = initProb(hexMap, probMap)
 		hexMap, probMap, W = tileGen(hexMap, probMap, W)
+		# print (i)
 		# printHex (probMap)
 		# print("\n"*100, i+1, "/", planeSize)
 		# time.sleep(.01)
+	print("time in ms: ", round(1000*(time.clock() - init_time), 2),"\nSeed:	", seed)
 	printHex (probMap)
-	print("time in ms: ", round(1000*(time.clock() - init_time), 2),"\nSeed:		", seed)
 
+def weighted_pick(weight_matrix, prN, W):
+	""" Returns weighted pick where HIGH values are more common.
+	weight_matrix is a list formatted [['Item0', weight0], ['Item1', weight1]] etc.. prN is the prime of the given spec, W is current xorshift.
+	Returns choice as (Item, position, W)"""
+	# GENERAL NOTES ON FUNCTION OF THIS TYPE OF CALL
+	# The general way this type of call works is by picking a "random" seed-generated number, then bounding it into a usable range to choose an option.
+	# First the weights of all options are summed, X. Then, xorshift is called to generate a number, W. W mod X gives a number Z, where 0 =< Z < X. 
+	# The weights are then added again one by one, and once the running sum of the weights > Z, the item attached to the most recently added weight
+	# is selected as the choice.
+	Weight_total = 0
+	count = 0
+	for i in range (len(weight_matrix)): #sums for the total weight of the values
+		Weight_total = Weight_total + weight_matrix[i][1]
+	W = xorshift(prN, W) 	# Picks a random number based on the seed and the prime value of the trait
+	choice = W%Weight_total # Bounds the value to the range of usable values
+	for i in range (len(weight_matrix)): # adds weights one by one
+		count = count + weight_matrix[i][1]
+		if count > choice: # when the running total surpasses the target, the selection is made
+			return (weight_matrix[i][0], i, W)
 
-# makeMap()
+def inv_weighted_pick(weight_matrix, prN, W):
+	""" Returns weighted pick where LOW values are more common.
+	weight_matrix is a list formatted [['Item0', weight0], ['Item1', weight1]] etc.. prN is the prime of the given spec, W is current xorshift.
+	Returns choice as (Item, position, W)"""
+	# GENERAL NOTES ON FUNCTION OF THIS TYPE OF CALL
+	# The general way this type of call works is by picking a "random" seed-generated number, then bounding it into a usable range to choose an option.
+	# First the weights of all options are summed, X. Then, xorshift is called to generate a number, W. W mod X gives a number Z, where 0 =< Z < X. 
+	# The weights are then added again one by one, and once the running sum of the weights > Z, the item attached to the most recently added weight
+	# is selected as the choice.
+	Weight_total = 0
+	count = 0
+	for i in range (len(weight_matrix)): #sums for the total weight of the values
+		Weight_total = Weight_total + 1/(weight_matrix[i][1])
+	W = xorshift(prN, W) 	# Picks a random number based on the seed and the prime value of the trait
+	choice = W%Weight_total # Bounds the value to the range of usable values
+	for i in range (len(weight_matrix)): # adds weights one by one
+		count = count + 1/(weight_matrix[i][1])
+		if count > choice: # when the running total surpasses the target, the selection is made
+			return (weight_matrix[i][0], i, W)
+
+def pickAttribute(atrib:str, weight_matrix, dom, none, prN, W): 
+	""" atrib is str, name of attribute. weight_matrix is the weighted matrix (see weighted_pick() for formatting), dom is the number of 
+	dominant attributes from the matrix, none is the number of nonexistant attributes from the matrix, prN is the prime of the attribute 
+	and W is the most recent W call 0 if none """
+	if len(weight_matrix) < dom + none:
+		print ("Dom + None attributes are more than options available")
+		return (0)
+	domChoice = []
+	noneChoice = []				# Lists needs to be declared before use
+	while len(domChoice) < dom: # rolls for an attribute, then removes it from the available options
+		choice, pos, W = weighted_pick(weight_matrix, prN, W)
+		domChoice.append(choice)
+		weight_matrix.pop(pos)
+
+	while len(noneChoice) < none: # rolls for an attribute, then removes it from the available options
+		choice, pos, W = inv_weighted_pick(weight_matrix, prN, W)
+		noneChoice.append(choice)
+		weight_matrix.pop(pos)
+
+	print("Dominant {0}:		".format(atrib), domChoice)
+	print("Nonexistant {0}:	".format(atrib), noneChoice)
+	return domChoice, noneChoice
+
+def attribAmnt(prN, maxim, minim):
+	global planeSize, seed
+	x = (xorshift(2*prN,0)%(planeSize-maxim+1)) + maxim
+	y = round(abs(math.log(maxim*x/(planeSize))/math.log(maxim/2.01)))
+	if y > maxim:
+		y = maxim
+	elif y < minim:
+		y = minim
+	return(y)
+
+def noneAmnt(prN, maxim, minim):
+	global planeSize, seed
+	x = (xorshift(prN,0)%(planeSize-maxim+1)) + maxim
+	y = round(abs(math.log(maxim*x/(planeSize))/math.log(maxim/2.01)))
+	if y > maxim:
+		y = maxim
+	elif y < minim:
+		y = minim - 1
+	z = maxim - y + 1
+	return(z)
+	
+def pickRace():
+
+	# Declarations
+	racePrN = 11				# prime for this attribute
+	race_weight_matrix = [['Human', 10], ['Dwarf', 10], ['Elf', 10],['Gnome', 10],['Dragonborn', 10], ['Halfling', 10],['Tiefling', 10]]
+	races_dominant = attribAmnt(racePrN,3,1)
+	races_none = noneAmnt(racePrN,3,1)
+	races = pickAttribute('races', race_weight_matrix, races_dominant, races_none, racePrN, 0)
+	return(races)
+
+def pickResources():
+
+	resourcePrN = 7
+	resource_weight_matrix = [['Water', 30], ['Ore', 7], ['Wood', 10],['Stone', 20],['Ancient Tech', 3], ['Fertile Soil', 10], ['Magic Essence', 10]]
+	domRes = attribAmnt(resourcePrN,2,1)
+	noneRes = noneAmnt(resourcePrN,2,1)
+	resources = pickAttribute('resources', resource_weight_matrix, domRes, noneRes, resourcePrN, 0)
+	return (resources)
+
+def pickMagic():
+	pass
+	magicPrn = 13
+	magic_weight_matrix = ([['Necromancy', 10],['Conjuration', 10],['Evocation', 10],['Abjuration', 10],['Transmutation', 10],
+		['Divination', 10],['Enchantment', 10],['Illusion', 10]])
+	domMagic = attribAmnt(magicPrn,4,1)
+	noneMagic = noneAmnt(magicPrn,2,0)
+	magic = pickAttribute('magic', magic_weight_matrix, domMagic, noneMagic, magicPrn, 0)
+	return (magic)
+
+def Island():
+	makeMap()
+	# print("\n", planeSize, '\n')
+	pickRace()
+	print("")
+	pickResources()
+	print("")
+	pickMagic()
+
+def NewIsland():
+	global seed
+	seed = NewSeed()
+	Island()
+
+def NewLoop():
+	while True:
+		x = input()
+		print('\n'*50)
+		NewIsland()
+
+NewLoop()

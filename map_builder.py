@@ -66,8 +66,18 @@ class map_gen(arcade.Window):
 		edge_buffer = zoom/2 #adds to parallelogram so hexes are rendered this far off screen. Now they can be dragged on and never show empty space
 
 		#for each hex in parallelogram defined by cover_screen
-		map_size = 40
+		map_size = 80
 		rain_vol = 0.0001
+
+
+		space_level = 0.3
+		sea_level = 0.33
+		beach_line = 0.6
+		tree_line = 0.6
+		snow_line = 0.65
+
+		elevation_break_points = [sea_level,beach_line,tree_line,snow_line,space_level]
+
 		for row in range(0,2*map_size+1): 
 			self.hex_grid.append([])
 			for column in range(0,2*map_size+1):
@@ -96,7 +106,7 @@ class map_gen(arcade.Window):
 					# print(px_dist)
 					
 					#color based on elevation
-					color = elev_color_sections(elevation,[0.48,0.6,0.74,0.77,0.45])
+					color = elev_color_sections(elevation,elevation_break_points)
 					hx = hexagon('hexagon.png',(zoom*1.2/(100))) #create hex sprite
 					hx.center_x = coord_px[0] #set sprite coordinates to current place in loop
 					hx.center_y = coord_px[1]
@@ -105,6 +115,7 @@ class map_gen(arcade.Window):
 					hx.flow_through = 0
 					hx.volume = rain_vol
 					hx.flow_cut = 0
+					hx.river_prob = 0
 
 
 					self.hex_list.append(hx) #add to sprite list
@@ -114,7 +125,7 @@ class map_gen(arcade.Window):
 					self.hex_grid[row].append(None)
 
 		
-		flow_iterations = 10
+		flow_iterations = map_size*2
 		
 		vol_array = []
 		for i in range(len(self.hex_grid)):
@@ -199,21 +210,14 @@ class map_gen(arcade.Window):
 		vol_val_list = []
 		for row in range(len(self.hex_grid)): 
 			for column in range(len(self.hex_grid[row])):
-				if self.hex_grid[row][column] is not None:
+				if self.hex_grid[row][column] is not None : #and self.hex_grid[row][column].elevation > space_level and self.hex_grid[row][column].flow_through > 0.3:
 					print(self.hex_grid[row][column].flow_through)
 					flow_val_list.append(self.hex_grid[row][column].flow_through)
 					vol_val_list.append(self.hex_grid[row][column].volume)
 					self.hex_grid[row][column].color = color_grad((255,255,255),(0,0,255),self.hex_grid[row][column].flow_through)
+
 		print('Max flow',max(flow_val_list))
 		print('Max volume',max(vol_val_list))
-		#color elevation
-		# for row in range(len(self.hex_grid)): 
-		# 	for column in range(len(self.hex_grid[row])):
-		# 		if self.hex_grid[row][column] is not None:
-		# 			print(math.log(self.hex_grid[row][column].flow))
-		# 			self.hex_grid[row][column].color = color_grad((0,0,0),(255,255,255),self.hex_grid[row][column].elevation)
-
-
 						
 
 

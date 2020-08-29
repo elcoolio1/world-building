@@ -112,10 +112,10 @@ class map_gen(arcade.Window):
 					hx.center_y = coord_px[1]
 					hx.elevation = elevation
 					hx.color = color 
-					hx.flow_through = 0
+					hx.water = 0.001
 					hx.volume = rain_vol
-					hx.flow_cut = 0
-					hx.river_prob = 0
+
+
 
 
 					self.hex_list.append(hx) #add to sprite list
@@ -124,100 +124,166 @@ class map_gen(arcade.Window):
 					# self.hex_list.append([]) #add to sprite list
 					self.hex_grid[row].append(None)
 
+
+
+		#water stuff
+		flow_array = []
+		for row in range(len(self.hex_grid)):
+			flow_array.append([])
+			for column in range(len(self.hex_grid)):
+				flow_array[row].append(1)
+
 		
-		flow_iterations = map_size*2
+
+
+
+
+		for row in range(len(self.hex_grid)):
+			for column in range(len(self.hex_grid)):
+
+				this = self.hex_grid[row][column]
+				if this is not None:
+					if this.elevation < space_level:
+						this.elevation =- 1000
+					#cellular automata rules for water
+					neighbours = grid_neighbours(row,column)
+					n_elev = []
+					n_water = []
+					n_eff_elev =[]
+					for n in range(0,6):
+						n_row = neighbours[n][0]
+						n_col = neighbours[n][1]
+						if self.hex_grid[n_row][n_col] is not None:
+								this_n = self.hex_grid[n_row][n_col]
+								n_elev.append(this_n.elevation)
+								n_water.append(this_n.water)
+								n_eff_elev.append(this_n.elevation+this_n.water)
+					if min(n_eff_elev) <= this.elevation+this.water:
+						ind = n_eff_elev.index(min(n_eff_elev))
+						this.water = this.water - (abs((this.water+this.elevation)-n_eff_elev[ind]))/2
+					print(this.water)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+					color  = color_grad((255,255,255),(0,0,255),this.water)
+					this.color = color
+
 		
-		vol_array = []
-		for i in range(len(self.hex_grid)):
-			vol_array.append([])
-			for j in range(len(self.hex_grid)):
-				if self.hex_grid[i][j] is not None:
-					vol_array[i].append(0)
-				else:
-					vol_array[i].append(None)
+		# flow_iterations = map_size*2
+		
+		# vol_array = []
+		# for i in range(len(self.hex_grid)):
+		# 	vol_array.append([])
+		# 	for j in range(len(self.hex_grid)):
+		# 		if self.hex_grid[i][j] is not None:
+		# 			vol_array[i].append(0)
+		# 		else:
+		# 			vol_array[i].append(None)
 
-		for iteration in range(flow_iterations):
-			for row in range(len(self.hex_grid)): 
-				for column in range(len(self.hex_grid)):
-					if self.hex_grid[row][column] is not None:
+		# for iteration in range(flow_iterations):
+		# 	for row in range(len(self.hex_grid)): 
+		# 		for column in range(len(self.hex_grid)):
+		# 			if self.hex_grid[row][column] is not None:
 
-						q = row-map_size
-						r = column-map_size
-						ax_dist=ax_distance(round_ax((q,r)),(0,0))
-						if ax_dist < map_size:
+		# 				q = row-map_size
+		# 				r = column-map_size
+		# 				ax_dist=ax_distance(round_ax((q,r)),(0,0))
+		# 				if ax_dist < map_size:
 
-							adjacent = grid_neighbours(row,column)
-							adjacent_rows = []
-							adjacent_cols = []
-							for i in range(0,6):
-								# print(i)
-								adjacent_rows.append(adjacent[i][0])
-								adjacent_cols.append(adjacent[i][1])
-							d_elevs = []
-							total_d_elev = 0
-							for i in range(0,6):
-								check_row = adjacent_rows[i]
-								check_col = adjacent_cols[i]
+		# 					adjacent = grid_neighbours(row,column)
+		# 					adjacent_rows = []
+		# 					adjacent_cols = []
+		# 					for i in range(0,6):
+		# 						# print(i)
+		# 						adjacent_rows.append(adjacent[i][0])
+		# 						adjacent_cols.append(adjacent[i][1])
+		# 					d_elevs = []
+		# 					total_d_elev = 0
+		# 					for i in range(0,6):
+		# 						check_row = adjacent_rows[i]
+		# 						check_col = adjacent_cols[i]
 								
-								if check_row >= 0 and check_row <= len(self.hex_grid):
-									if check_col >= 0 and check_col <= len(self.hex_grid):
-										if self.hex_grid[check_row][check_col] is not None:
+		# 						if check_row >= 0 and check_row <= len(self.hex_grid):
+		# 							if check_col >= 0 and check_col <= len(self.hex_grid):
+		# 								if self.hex_grid[row][column].elevation < space_level:
+		# 									self.hex_grid[row][column].elevation = self.hex_grid[row][column].elevation - 1000
+		# 								if self.hex_grid[check_row][check_col] is not None:
 
-											to_append = (self.hex_grid[row][column].elevation + self.hex_grid[row][column].volume) - (self.hex_grid[check_row][check_col].elevation + self.hex_grid[check_row][check_col].volume)
-											d_elevs.append(to_append)
-											# print('delta',to_append)
-											if to_append > 0:
-												total_d_elev = total_d_elev + to_append
-										else:
-											d_elevs.append(-1)
-									else:
-										d_elevs.append(-1)
-								else:
-									d_elevs.append(-1)
-							for i in range(0,6):
-								check_row = adjacent_rows[i]
-								check_col = adjacent_cols[i]
-								if d_elevs[i] > 0:
+		# 									to_append = (self.hex_grid[row][column].elevation + self.hex_grid[row][column].volume) - (self.hex_grid[check_row][check_col].elevation )
+		# 									d_elevs.append(to_append)
+		# 									# print('delta',to_append)
+		# 									if to_append > 0:
+		# 										total_d_elev = total_d_elev + to_append
+		# 								else:
+		# 									d_elevs.append(-1)
+		# 							else:
+		# 								d_elevs.append(-1)
+		# 						else:
+		# 							d_elevs.append(-1)
+		# 					for i in range(0,6):
+		# 						check_row = adjacent_rows[i]
+		# 						check_col = adjacent_cols[i]
+		# 						if d_elevs[i] > 0:
 
-									flow_amount = d_elevs[i]/total_d_elev * self.hex_grid[row][column].volume
-									# print(d_elevs[i]/total_d_elev)
-									vol_array[check_row][check_col] = vol_array[check_row][check_col] + flow_amount
-									vol_array[row][column] = vol_array[row][column] - flow_amount
+		# 							flow_amount = d_elevs[i]/total_d_elev * self.hex_grid[row][column].volume
+		# 							# print(d_elevs[i]/total_d_elev)
+		# 							vol_array[check_row][check_col] = vol_array[check_row][check_col] + flow_amount
+		# 							vol_array[row][column] = vol_array[row][column] - flow_amount
 
-									self.hex_grid[check_row][check_col].flow_through = self.hex_grid[check_row][check_col].flow_through + flow_amount
+		# 							self.hex_grid[check_row][check_col].flow_through = self.hex_grid[check_row][check_col].flow_through + flow_amount
 
-							# vol_array[row][column] = vol_array[row][column] - self.hex_grid[row][column].volume
+		# 					# vol_array[row][column] = vol_array[row][column] - self.hex_grid[row][column].volume
 							
 
 
 
-			for row in range(len(vol_array)): 
-				for column in range(len(vol_array)):
-					if self.hex_grid[row][column] is not None:
-						# print(vol_array[row][column])
-						self.hex_grid[row][column].volume = vol_array[row][column]
+		# 	for row in range(len(vol_array)): 
+		# 		for column in range(len(vol_array)):
+		# 			if self.hex_grid[row][column] is not None:
+		# 				# print(vol_array[row][column])
+		# 				self.hex_grid[row][column].volume = vol_array[row][column]
 
-			for i in range(len(vol_array)):
-				for j in range(len(vol_array)):
-					if self.hex_grid[i][j] is not None:
-						vol_array[i][j] = vol_array[i][j] +rain_vol
-
-
+		# 	for i in range(len(vol_array)):
+		# 		for j in range(len(vol_array)):
+		# 			if self.hex_grid[i][j] is not None:
+		# 				vol_array[i][j] = vol_array[i][j] +rain_vol
 
 
-		#color water
-		flow_val_list = []
-		vol_val_list = []
-		for row in range(len(self.hex_grid)): 
-			for column in range(len(self.hex_grid[row])):
-				if self.hex_grid[row][column] is not None : #and self.hex_grid[row][column].elevation > space_level and self.hex_grid[row][column].flow_through > 0.3:
-					print(self.hex_grid[row][column].flow_through)
-					flow_val_list.append(self.hex_grid[row][column].flow_through)
-					vol_val_list.append(self.hex_grid[row][column].volume)
-					self.hex_grid[row][column].color = color_grad((255,255,255),(0,0,255),self.hex_grid[row][column].flow_through)
 
-		print('Max flow',max(flow_val_list))
-		print('Max volume',max(vol_val_list))
+
+		# #color water
+		# flow_val_list = []
+		# vol_val_list = []
+		# for row in range(len(self.hex_grid)): 
+		# 	for column in range(len(self.hex_grid[row])):
+		# 		if self.hex_grid[row][column] is not None : #and self.hex_grid[row][column].elevation > space_level and self.hex_grid[row][column].flow_through > 0.3:
+		# 			print(self.hex_grid[row][column].flow_through)
+		# 			flow_val_list.append(self.hex_grid[row][column].flow_through)
+		# 			vol_val_list.append(self.hex_grid[row][column].volume)
+		# 			self.hex_grid[row][column].color = color_grad((255,255,255),(0,0,255),self.hex_grid[row][column].flow_through/12)
+
+		# print('Max flow',max(flow_val_list))
+		# print('Max volume',max(vol_val_list))
 						
 
 
